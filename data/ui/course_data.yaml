@@ -19,3 +19,8 @@ course_access:
 
 edit_course:
   new_fullname: "软件测试实践-修改版"
+
+assignment_data:
+  title: "作业xxx"
+  file_path: "E:\\桌面\\这是一份作业.txt"
+  grade: "85"

@@ -1,1 +1,17 @@
-# 作业测试数据
+assignment:
+  title: "Assignment1"
+  description: "Please submit your test design document."
+  due_date_day: "12"
+  due_date_month: "5"
+  due_date_year: "2026"
+  file_path: "E:\\桌面\\这是一份作业.txt"
+  grade: "100"
+  feedback_text: "Excellent work! Full marks."
+  # 作业测试数据
+  assignment:
+    title: "单元测试设计"
+    description: "请提交测试用例设计文档，包含等价类划分、边界值分析等内容。"
+    due_date: "2026-05-06 23:30"
+    file_to_upload: "D:/test_files/test_design.docx"
+    grade: 85
+    feedback: "结构清晰，但缺少边界用例，总体良好。"
