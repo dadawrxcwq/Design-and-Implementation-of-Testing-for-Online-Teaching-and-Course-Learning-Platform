@@ -1,0 +1,42 @@
+# 环境配置文件 - Environment 01
+# 用于配置测试环境相关的参数
+#演示/在线测试环境
+
+# 基础URL配置
+base_url: https://school.moodledemo.net
+
+# 浏览器配置
+browser: edge
+
+# 超时配置
+timeouts:
+  implicit_wait: 10          # 隐式等待（秒）
+  explicit_wait: 20          # 显式等待（秒）
+  page_load: 30              # 页面加载超时（秒）
+  
+# 窗口配置
+window:
+  width: 1920
+  height: 1080
+  maximize: true             # 是否最大化窗口
+
+# 日志配置
+logging:
+  level: INFO                # 日志级别: DEBUG, INFO, WARNING, ERROR
+  file_path: report/logs/test.log
+  
+# 重试配置
+retry:
+  max_retries: 3             # 最大重试次数
+  retry_delay: 2             # 重试间隔（秒）
+
+# Allure报告配置
+allure:
+  results_dir: report/allure-results
+  report_dir: report/allure-report
+
+# 性能测试配置
+performance:
+  jmeter_home: C:/apache-jmeter-5.6.3  # JMeter安装路径（根据实际修改）
+  default_threads: 10
+  default_duration: 60

@@ -1,0 +1,21 @@
+# 课程测试数据
+course_creation:
+  fullname: "软件测试实践"
+  shortname: "SWTEST2026"
+  category: "Faculty of Education"
+  visible: true
+
+teacher_enrolment:
+  teacher_name: "Jeffrey"
+  teacher_full: "Jeffrey Sanders"
+
+student_enrolment:
+  student_name: "Barbara"
+  student_full: "Barbara Gardner"
+
+course_access:
+  search_keyword: "软件测试实践"
+  expected_title: "软件测试实践"
+
+edit_course:
+  new_fullname: "软件测试实践-修改版"

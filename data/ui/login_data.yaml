@@ -1,0 +1,45 @@
+# 登录测试数据 —— 严格对应论文 3.4.1 节测试用例
+
+# 有效凭据（TC-LOGIN-01 ~ TC-LOGIN-04）
+valid_credentials:
+  - username: "manager"
+    password: "moodle26"
+    role: "dean"
+    description: "Dean/管理员账号"
+
+  - username: "teacher"
+    password: "moodle26"
+    role: "teacher"
+    description: "教师账号"
+
+  - username: "student"
+    password: "moodle26"
+    role: "student"
+    description: "学生账号"
+
+  - username: "privacyofficer"
+    password: "moodle26"
+    role: "privacy_officer"
+    description: "隐私官员账号"
+
+# 无效凭据（TC-LOGIN-05 ~ TC-LOGIN-09）
+invalid_credentials:
+  - username: "student"
+    password: "wrongpwd"
+    description: "TC-LOGIN-05: 错误密码"
+
+  - username: ""
+    password: "moodle26"
+    description: "TC-LOGIN-06: 空用户名"
+
+  - username: "student"
+    password: ""
+    description: "TC-LOGIN-07: 空密码"
+
+  - username: "unknown123"
+    password: "moodle26"
+    description: "TC-LOGIN-08: 不存在的用户"
+
+  - username: "student"
+    password: "MOODLE26"
+    description: "TC-LOGIN-09: 密码大小写敏感性"

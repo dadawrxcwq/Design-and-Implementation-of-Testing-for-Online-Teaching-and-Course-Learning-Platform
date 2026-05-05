@@ -1,0 +1,31 @@
+# 测试账号配置
+accounts:
+  dean:
+    username: manager
+    password: moodle26
+    role: Dean of Education
+    description: 教育院长，具有Manager角色
+
+  teacher:
+    username: teacher
+    password: moodle26
+    role: Lecturer
+    description: 讲师，具有Teacher角色
+
+  student:
+    username: student
+    password: moodle26
+    role: Student
+    description: 学生
+
+  mentor:
+    username: parent
+    password: moodle26
+    role: Learning Support Tutor
+    description: 学习支持导师，具有Mentor/Parent角色
+
+  privacy_officer:
+    username: privacyofficer
+    password: moodle26
+    role: Privacy Officer
+    description: 隐私官员

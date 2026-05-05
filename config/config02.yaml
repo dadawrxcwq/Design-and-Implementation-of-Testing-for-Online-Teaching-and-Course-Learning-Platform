@@ -1,0 +1,16 @@
+#本地测试环境（开发用）
+base_url: http://localhost/moodle
+browser: chrome
+
+timeouts:
+  implicit_wait: 5
+  explicit_wait: 10
+  page_load: 15
+
+window:
+  width: 1366
+  height: 768
+  maximize: true
+
+logging:
+  level: DEBUG  # 本地开发用DEBUG级别

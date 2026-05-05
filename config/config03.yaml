@@ -1,0 +1,16 @@
+#生产环境（模拟真实场景）
+base_url: https://moodle.production.com
+browser: chrome
+
+timeouts:
+  implicit_wait: 15
+  explicit_wait: 30
+  page_load: 60
+
+window:
+  width: 1920
+  height: 1080
+  maximize: true
+
+logging:
+  level: WARNING  # 生产环境只记录警告以上
