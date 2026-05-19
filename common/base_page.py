@@ -4,7 +4,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException, StaleElementReferenceException
 from common.logger import LoggerManager
 import time
 
@@ -135,11 +135,20 @@ class BasePage:
             clear: 是否先清空输入框
             timeout: 超时时间
         """
-        element = self.find_element(locator, timeout)
-        if clear:
-            element.clear()
-        element.send_keys(text)
-        self.logger.info(f"输入文本: '{text}' 到元素 {locator}")
+        last_error = None
+        for _ in range(2):
+            try:
+                element = self.find_visible_element(locator, timeout)
+                if clear:
+                    element.clear()
+                element.send_keys(text)
+                self.logger.info(f"input text into element: {locator}")
+                return
+            except StaleElementReferenceException as exc:
+                last_error = exc
+                self.logger.warning(f"stale element, retry input: {locator}")
+                time.sleep(0.2)
+        raise last_error
 
     def input_and_enter(self, locator, text, timeout=None):
         """输入文本并按回车键"""
@@ -477,7 +486,7 @@ class BasePage:
             timeout = self.timeout
 
         WebDriverWait(self.driver, timeout).until(
-            lambda d: d.execute_script('return document.readyState') == 'complete'
+            lambda d: d.execute_script('return document.readyState') in ('interactive', 'complete')
         )
         self.logger.debug("页面加载完成")
 
@@ -560,11 +569,17 @@ class BasePage:
 
     def is_element_exists(self, locator):
         """检查元素是否存在（不等待）"""
+        from utils.config_reader import config_reader
+
+        original_wait = config_reader.get('timeouts.implicit_wait', 2)
         try:
+            self.driver.implicitly_wait(0)
             self.driver.find_element(*locator)
             return True
         except NoSuchElementException:
             return False
+        finally:
+            self.driver.implicitly_wait(original_wait)
 
     def is_element_enabled(self, locator, timeout=None):
         """检查元素是否启用"""

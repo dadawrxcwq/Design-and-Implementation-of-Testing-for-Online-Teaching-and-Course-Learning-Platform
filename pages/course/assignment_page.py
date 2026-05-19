@@ -13,7 +13,7 @@ class AssignmentPage(BasePage):
 
     logger = LoggerManager.get_logger()
 
-    # ==================== 元素定位器（待踩点修正） ====================
+    # ==================== 元素定位器 ====================
 
     # 添加活动/资源按钮
     ADD_ACTIVITY_LINK = (By.XPATH, "//a[contains(., 'Add an activity or resource')]")

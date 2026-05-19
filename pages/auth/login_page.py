@@ -53,9 +53,25 @@ class LoginPage(BasePage):
     def __init__(self, driver):
         super().__init__(driver)
 
+    def _clear_browser_session(self):
+        """Clear cookies so explicit logins start from a known state."""
+        try:
+            self.driver.delete_all_cookies()
+        except Exception as exc:
+            self.logger.warning(f"clear cookies failed: {exc}")
+
+    def _ensure_login_form(self):
+        """Open a fresh login form when the reused browser is already logged in."""
+        if self.is_on_login_page():
+            return
+        self._clear_browser_session()
+        super().navigate(self.LOGIN_URL)
+        self.wait_for_page_load(timeout=5)
+
     @allure.step('导航到登录页面')
     def navigate(self):
         """导航到登录页面"""
+        self._clear_browser_session()
         super().navigate(self.LOGIN_URL)
         self.logger.info("已导航到登录页面")
         return self
@@ -68,7 +84,12 @@ class LoginPage(BasePage):
             from common.base_page import BasePage
             base_page = BasePage(self.driver)
             base_page.navigate('/')
-            self.wait_for_page_load(timeout=8)
+            try:
+                self.wait_for_page_load(timeout=2)
+            except Exception:
+                # With eager page loading, Moodle may already be logged in while
+                # late assets keep document.readyState from reaching complete.
+                pass
             
             # 尝试多种方式找到登录链接
             login_locators = [
@@ -114,6 +135,7 @@ class LoginPage(BasePage):
             self对象，支持链式调用
         """
         self.logger.info(f"开始登录流程，用户: {username}")
+        self._ensure_login_form()
 
         # 处理可能出现的Cookie同意弹窗
         if self.is_element_exists(self.COOKIE_CONSENT_BUTTON):
@@ -170,25 +192,36 @@ class LoginPage(BasePage):
         """
         try:
             # 等待页面完全加载
-            self.wait_for_page_load(timeout=8)
+            try:
+                self.wait_for_page_load(timeout=2)
+            except Exception:
+                # With eager page loading, Moodle may already be logged in while
+                # late assets keep document.readyState from reaching complete.
+                pass
             
             # 方法1：检查用户头像是否可见（登录成功的标志）
-            avatar_visible = self.is_element_visible(self.USER_AVATAR, timeout=5)
+            if self.is_element_exists(self.ERROR_MESSAGE) or self.is_element_exists(self.LOGIN_FAILED_ALERT):
+                return False
+            if self.is_element_exists(self.USER_AVATAR) or self.is_element_exists(self.USER_MENU):
+                return True
+            if self.is_on_login_page():
+                return False
+
+            avatar_visible = self.is_element_visible(self.USER_AVATAR, timeout=1)
             
             # 方法2：检查用户菜单是否可见
-            user_menu_visible = self.is_element_visible(self.USER_MENU, timeout=5)
+            user_menu_visible = self.is_element_visible(self.USER_MENU, timeout=1)
             
             # 方法3：检查是否有错误消息（登录失败的标志）
-            has_error = self.is_element_visible(self.ERROR_MESSAGE, timeout=2)
+            has_error = False
             
             if avatar_visible or user_menu_visible:
                 return True
             elif has_error:
                 return False
             else:
-                # 截图调试
-                self.take_screenshot("login_status_debug")
-                return False
+                current_url = self.get_current_url().lower()
+                return 'login/index.php' not in current_url and '/login/' not in current_url
         except Exception as e:
             self.logger.error(f"检查登录状态时出错: {str(e)}")
             return False
@@ -293,6 +326,7 @@ class LoginPage(BasePage):
         """
         if not self.is_login_success():
             self.logger.warning("用户未登录，无需登出")
+            self._clear_browser_session()
             return self
 
         try:
@@ -312,7 +346,8 @@ class LoginPage(BasePage):
             return self
         except Exception as e:
             self.logger.error(f"登出失败: {str(e)}")
-            raise
+            self._clear_browser_session()
+            return self
 
     # ==================== 访客登录 ====================
 
@@ -440,7 +475,7 @@ class LoginPage(BasePage):
         self.logger.info(f"尝试使用保存的 {role} 会话登录")
         
         # 先导航到网站
-        self.navigate('/')
+        super().navigate('/')
         self.wait_for_page_load(timeout=5)
         
         # 添加cookies

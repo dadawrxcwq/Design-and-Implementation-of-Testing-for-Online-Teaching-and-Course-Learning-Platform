@@ -1,4 +1,4 @@
-# 登录测试数据 —— 严格对应论文 3.4.1 节测试用例
+# 登录测试数据
 
 # 有效凭据（TC-LOGIN-01 ~ TC-LOGIN-04）
 valid_credentials:
@@ -43,3 +43,181 @@ invalid_credentials:
   - username: "student"
     password: "MOODLE26"
     description: "TC-LOGIN-09: 密码大小写敏感性"
+
+# 边界值测试（TC-LOGIN-010 ~ TC-LOGIN-020）
+boundary_credentials:
+  - username: "a"
+    password: "moodle26"
+    description: "TC-LOGIN-010: 单字符用户名"
+
+  - username: "student"
+    password: "a"
+    description: "TC-LOGIN-011: 单字符密码"
+
+  - username: "   "
+    password: "moodle26"
+    description: "TC-LOGIN-012: 空格用户名"
+
+  - username: "student"
+    password: "   "
+    description: "TC-LOGIN-013: 空格密码"
+
+  - username: "student@test.com"
+    password: "moodle26"
+    description: "TC-LOGIN-014: 邮箱格式用户名"
+
+  - username: "student123"
+    password: "moodle26"
+    description: "TC-LOGIN-015: 含数字用户名"
+
+  - username: "STUDENT"
+    password: "moodle26"
+    description: "TC-LOGIN-016: 大写用户名"
+    expected_success: true
+
+  - username: "Student"
+    password: "moodle26"
+    description: "TC-LOGIN-017: 混合大小写用户名"
+    expected_success: true
+
+  - username: "student"
+    password: "moodle26 "
+    description: "TC-LOGIN-018: 密码尾部空格"
+
+  - username: " student"
+    password: "moodle26"
+    description: "TC-LOGIN-019: 用户名前导空格"
+    expected_success: true
+
+  - username: "student\t"
+    password: "moodle26"
+    description: "TC-LOGIN-020: 用户名含Tab字符"
+    expected_success: true
+
+# SQL注入尝试（TC-LOGIN-021 ~ TC-LOGIN-030）
+sqli_credentials:
+  - username: "' OR '1'='1"
+    password: "moodle26"
+    description: "TC-LOGIN-021: SQL注入尝试1"
+
+  - username: "admin' --"
+    password: "moodle26"
+    description: "TC-LOGIN-022: SQL注释注入"
+
+  - username: "' UNION SELECT 1,2,3 --"
+    password: "moodle26"
+    description: "TC-LOGIN-023: UNION注入"
+
+  - username: "student"
+    password: "' OR '1'='1"
+    description: "TC-LOGIN-024: 密码SQL注入"
+
+  - username: "1; DROP TABLE users"
+    password: "moodle26"
+    description: "TC-LOGIN-025: 删除表注入"
+
+  - username: "' AND 1=1 --"
+    password: "moodle26"
+    description: "TC-LOGIN-026: AND条件注入"
+
+  - username: "admin'/*"
+    password: "moodle26"
+    description: "TC-LOGIN-027: 多行注释注入"
+
+  - username: "' WAITFOR DELAY '0:0:5' --"
+    password: "moodle26"
+    description: "TC-LOGIN-028: 时间盲注"
+
+  - username: "student"
+    password: "'; EXEC xp_cmdshell('dir') --"
+    description: "TC-LOGIN-029: 命令执行注入"
+
+  - username: "' HAVING 1=1 --"
+    password: "moodle26"
+    description: "TC-LOGIN-030: HAVING子句注入"
+
+# XSS注入尝试（TC-LOGIN-031 ~ TC-LOGIN-040）
+xss_credentials:
+  - username: "<script>alert('XSS')</script>"
+    password: "moodle26"
+    description: "TC-LOGIN-031: 基本XSS攻击"
+
+  - username: "<img src=x onerror=alert(1)>"
+    password: "moodle26"
+    description: "TC-LOGIN-032: 图片标签XSS"
+
+  - username: "<svg onload=alert(1)>"
+    password: "moodle26"
+    description: "TC-LOGIN-033: SVG标签XSS"
+
+  - username: "javascript:alert(1)"
+    password: "moodle26"
+    description: "TC-LOGIN-034: JavaScript协议XSS"
+
+  - username: "<iframe src='javascript:alert(1)'>"
+    password: "moodle26"
+    description: "TC-LOGIN-035: iframe XSS"
+
+  - username: "<body onload=alert(1)>"
+    password: "moodle26"
+    description: "TC-LOGIN-036: body标签XSS"
+
+  - username: "<input onfocus=alert(1) autofocus>"
+    password: "moodle26"
+    description: "TC-LOGIN-037: input标签XSS"
+
+  - username: "<marquee onstart=alert(1)>"
+    password: "moodle26"
+    description: "TC-LOGIN-038: marquee标签XSS"
+
+  - username: "<video><source onerror=alert(1)>"
+    password: "moodle26"
+    description: "TC-LOGIN-039: video标签XSS"
+
+  - username: "<details open ontoggle=alert(1)>"
+    password: "moodle26"
+    description: "TC-LOGIN-040: details标签XSS"
+
+# 特殊字符测试（TC-LOGIN-041 ~ TC-LOGIN-050）
+special_char_credentials:
+  - username: "student@#$%"
+    password: "moodle26"
+    description: "TC-LOGIN-041: 用户名含特殊字符"
+
+  - username: "学生"
+    password: "moodle26"
+    description: "TC-LOGIN-042: 中文用户名"
+
+  - username: "студент"
+    password: "moodle26"
+    description: "TC-LOGIN-043: 俄文用户名"
+
+  - username: "学生"
+    password: "moodle26"
+    description: "TC-LOGIN-044: 日文用户名"
+
+  - username: "🎓student"
+    password: "moodle26"
+    description: "TC-LOGIN-045: Emoji用户名"
+
+  - username: "student"
+    password: "密码123"
+    description: "TC-LOGIN-046: 中文密码"
+
+  - username: "student"
+    password: "p@$$w0rd!"
+    description: "TC-LOGIN-047: 复杂密码"
+
+  - username: "student"
+    password: "moodle26\n"
+    description: "TC-LOGIN-048: 密码含换行符"
+    expected_success: true
+
+  - username: "student\x00"
+    password: "moodle26"
+    description: "TC-LOGIN-049: 用户名含空字符"
+    expected_success: true
+
+  - username: "<>&\"'"
+    password: "moodle26"
+    description: "TC-LOGIN-050: HTML实体字符"

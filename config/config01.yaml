@@ -10,7 +10,7 @@ browser: edge
 
 # 超时配置
 timeouts:
-  implicit_wait: 10          # 隐式等待（秒）
+  implicit_wait: 2           # 隐式等待（秒）
   explicit_wait: 20          # 显式等待（秒）
   page_load: 30              # 页面加载超时（秒）
   

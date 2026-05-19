@@ -3,7 +3,7 @@ base_url: http://localhost/moodle
 browser: chrome
 
 timeouts:
-  implicit_wait: 5
+  implicit_wait: 2
   explicit_wait: 10
   page_load: 15
 

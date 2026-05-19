@@ -1,6 +1,10 @@
 # pages/course/participant_page.py
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+from selenium.common.exceptions import TimeoutException
 from common.base_page import BasePage
 from common.logger import LoggerManager
 import allure
@@ -38,13 +42,17 @@ class ParticipantPage(BasePage):
         search_input = self.find_element(self.USER_SEARCH_INPUT)
         search_input.clear()
         search_input.send_keys(username)
-        self.sleep(3)  # wait for suggestions to load
-        # Simply click the first suggestion
-        first_option = self.driver.find_element(
-            By.CSS_SELECTOR, 'li[role="option"]:first-child')
+        try:
+            first_option = WebDriverWait(self.driver, 8).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'li[role="option"]:first-child'))
+            )
+        except TimeoutException:
+            self.logger.warning(f"No enrolment option found for user: {username}")
+            search_input.send_keys(Keys.ESCAPE)
+            return False
         first_option.click()
         self.sleep(1)
-        return self
+        return True
 
     def assign_role(self, role='Student'):
         role_map = {'学生': 'Student', '教师': 'Teacher', '非编辑教师': 'Non-editing teacher'}

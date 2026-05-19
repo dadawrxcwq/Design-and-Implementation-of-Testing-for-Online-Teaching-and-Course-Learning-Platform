@@ -3,7 +3,7 @@ base_url: https://moodle.production.com
 browser: chrome
 
 timeouts:
-  implicit_wait: 15
+  implicit_wait: 2
   explicit_wait: 30
   page_load: 60
 

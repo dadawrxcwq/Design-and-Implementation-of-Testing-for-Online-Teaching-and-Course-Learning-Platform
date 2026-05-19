@@ -6,6 +6,10 @@ from utils.config_reader import config_reader
 from utils.data_loader import load_yaml
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from pathlib import Path
+
+
+COURSE_URL_FILE = Path('data/runtime/course_url.txt')
 
 
 @allure.feature('课程管理')
@@ -39,6 +43,11 @@ class TestTeacherEditCourse:
         search_kw = self.course_data['course_access']['search_keyword']
         course_fullname = self.course_data['course_creation']['fullname']
 
+        if COURSE_URL_FILE.exists():
+            self.driver.get(self.config.base_url + COURSE_URL_FILE.read_text(encoding='utf-8').strip())
+            self.login_page.wait_for_page_load()
+            return
+
         search_input = None
         for by, selector in [
             (By.CSS_SELECTOR, 'input[type="search"]'),
@@ -58,9 +67,11 @@ class TestTeacherEditCourse:
         search_input.send_keys(Keys.ENTER)
         self.login_page.wait_for_page_load()
 
-        course_link = self.driver.find_element(
+        course_links = self.driver.find_elements(
             By.XPATH, f"//a[contains(., '{course_fullname}')]")
-        course_link.click()
+        course_link = next((link for link in course_links if link.is_displayed()), course_links[0])
+        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", course_link)
+        self.driver.execute_script("arguments[0].click();", course_link)
         self.login_page.wait_for_page_load()
 
     @allure.title('TC-COURSE-05: Teacher开启编辑模式')

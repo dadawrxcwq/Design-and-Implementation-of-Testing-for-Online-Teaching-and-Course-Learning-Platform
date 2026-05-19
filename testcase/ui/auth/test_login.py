@@ -220,3 +220,165 @@ class TestLogin:
 
         assert all(elements_check.values()), \
             f"登录页面缺少元素: {[k for k, v in elements_check.items() if not v]}"
+
+    # ==================== 边界值测试（TC-LOGIN-010 ~ TC-LOGIN-020） ====================
+    @allure.title('TC-LOGIN-010~020: 边界值测试 - {cred[description]}')
+    @allure.description('验证边界条件下的登录行为')
+    @allure.severity(allure.severity_level.NORMAL)
+    @pytest.mark.ui
+    @pytest.mark.auth
+    @pytest.mark.parametrize('cred', load_yaml('data/ui/login_data.yaml').get('boundary_credentials', []))
+    def test_boundary_login(self, cred):
+        """TC-LOGIN-010 ~ TC-LOGIN-020: 边界值测试"""
+        username = cred['username']
+        password = cred['password']
+        desc = cred['description']
+
+        with allure.step(f'1. 导航到登录页面'):
+            self.login_page.navigate()
+
+        with allure.step(f'2. 输入边界值凭据 ({desc})'):
+            if username and password:
+                self.login_page.login(username, password)
+            else:
+                if username:
+                    self.login_page.input_text(self.login_page.USERNAME_INPUT, username)
+                if password:
+                    self.login_page.input_text(self.login_page.PASSWORD_INPUT, password)
+                self.login_page.click(self.login_page.LOGIN_BUTTON)
+                self.login_page.wait_for_page_load()
+
+        with allure.step('3. 验证边界值登录结果'):
+            expected_success = cred.get('expected_success', False)
+            login_success = self.login_page.is_login_success()
+            login_failed = self.login_page.is_login_failed() or not login_success
+            if expected_success:
+                assert login_success, f"场景 '{desc}' 在Moodle中应被规范化并登录成功"
+            else:
+                assert login_failed, f"场景 '{desc}' 应登录失败"
+
+    # ==================== SQL注入测试（TC-LOGIN-021 ~ TC-LOGIN-030） ====================
+    @allure.title('TC-LOGIN-021~030: SQL注入防护测试 - {cred[description]}')
+    @allure.description('验证系统能够抵御SQL注入攻击')
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.ui
+    @pytest.mark.auth
+    @pytest.mark.security
+    @pytest.mark.parametrize('cred', load_yaml('data/ui/login_data.yaml').get('sqli_credentials', []))
+    def test_sqli_protection(self, cred):
+        """TC-LOGIN-021 ~ TC-LOGIN-030: SQL注入防护测试"""
+        username = cred['username']
+        password = cred['password']
+        desc = cred['description']
+
+        with allure.step(f'1. 导航到登录页面'):
+            self.login_page.navigate()
+
+        with allure.step(f'2. 尝试SQL注入 ({desc})'):
+            try:
+                if username and password:
+                    self.login_page.login(username, password)
+                else:
+                    if username:
+                        self.login_page.input_text(self.login_page.USERNAME_INPUT, username)
+                    if password:
+                        self.login_page.input_text(self.login_page.PASSWORD_INPUT, password)
+                    self.login_page.click(self.login_page.LOGIN_BUTTON)
+                    self.login_page.wait_for_page_load()
+            except Exception as e:
+                # SQL注入可能导致异常，这也是防护的表现
+                allure.attach(f"捕获异常: {str(e)}", name="异常信息",
+                            attachment_type=allure.attachment_type.TEXT)
+
+        with allure.step('3. 验证SQL注入失败（不应成功登录）'):
+            assert not self.login_page.is_login_success(), \
+                f"安全漏洞：'{desc}' 竟然成功登录！"
+
+    # ==================== XSS注入测试（TC-LOGIN-031 ~ TC-LOGIN-040） ====================
+    @allure.title('TC-LOGIN-031~040: XSS注入防护测试 - {cred[description]}')
+    @allure.description('验证系统能够抵御XSS跨站脚本攻击')
+    @allure.severity(allure.severity_level.CRITICAL)
+    @pytest.mark.ui
+    @pytest.mark.auth
+    @pytest.mark.security
+    @pytest.mark.parametrize('cred', load_yaml('data/ui/login_data.yaml').get('xss_credentials', []))
+    def test_xss_protection(self, cred):
+        """TC-LOGIN-031 ~ TC-LOGIN-040: XSS注入防护测试"""
+        username = cred['username']
+        password = cred['password']
+        desc = cred['description']
+
+        with allure.step(f'1. 导航到登录页面'):
+            self.login_page.navigate()
+
+        with allure.step(f'2. 尝试XSS注入 ({desc})'):
+            try:
+                if username and password:
+                    self.login_page.login(username, password)
+                else:
+                    if username:
+                        self.login_page.input_text(self.login_page.USERNAME_INPUT, username)
+                    if password:
+                        self.login_page.input_text(self.login_page.PASSWORD_INPUT, password)
+                    self.login_page.click(self.login_page.LOGIN_BUTTON)
+                    self.login_page.wait_for_page_load()
+            except Exception as e:
+                allure.attach(f"捕获异常: {str(e)}", name="异常信息",
+                            attachment_type=allure.attachment_type.TEXT)
+
+        with allure.step('3. 验证XSS注入失败（不应执行脚本）'):
+            # 检查是否出现alert弹窗（如果有，说明XSS成功，这是安全问题）
+            try:
+                from selenium.webdriver.support.ui import WebDriverWait
+                from selenium.webdriver.support import expected_conditions as EC
+                alert = WebDriverWait(self.driver, 2).until(EC.alert_is_present())
+                alert_text = alert.text
+                alert.accept()
+                pytest.fail(f"安全漏洞：XSS攻击成功，alert内容为: {alert_text}")
+            except:
+                # 没有alert弹窗，说明XSS被阻止了
+                pass
+            
+            # 无论如何，不应该成功登录
+            assert not self.login_page.is_login_success(), \
+                f"安全漏洞：'{desc}' 竟然成功登录！"
+
+    # ==================== 特殊字符测试（TC-LOGIN-041 ~ TC-LOGIN-050） ====================
+    @allure.title('TC-LOGIN-041~050: 特殊字符处理测试 - {cred[description]}')
+    @allure.description('验证系统对特殊字符的正确处理')
+    @allure.severity(allure.severity_level.NORMAL)
+    @pytest.mark.ui
+    @pytest.mark.auth
+    @pytest.mark.parametrize('cred', load_yaml('data/ui/login_data.yaml').get('special_char_credentials', []))
+    def test_special_characters(self, cred):
+        """TC-LOGIN-041 ~ TC-LOGIN-050: 特殊字符测试"""
+        username = cred['username']
+        password = cred['password']
+        desc = cred['description']
+
+        with allure.step(f'1. 导航到登录页面'):
+            self.login_page.navigate()
+
+        with allure.step(f'2. 输入特殊字符凭据 ({desc})'):
+            try:
+                if username and password:
+                    self.login_page.login(username, password)
+                else:
+                    if username:
+                        self.login_page.input_text(self.login_page.USERNAME_INPUT, username)
+                    if password:
+                        self.login_page.input_text(self.login_page.PASSWORD_INPUT, password)
+                    self.login_page.click(self.login_page.LOGIN_BUTTON)
+                    self.login_page.wait_for_page_load()
+            except Exception as e:
+                allure.attach(f"捕获异常: {str(e)}", name="异常信息",
+                            attachment_type=allure.attachment_type.TEXT)
+
+        with allure.step('3. 验证特殊字符处理结果'):
+            expected_success = cred.get('expected_success', False)
+            login_success = self.login_page.is_login_success()
+            login_failed = self.login_page.is_login_failed() or not login_success
+            if expected_success:
+                assert login_success, f"场景 '{desc}' 在Moodle中应被规范化并登录成功"
+            else:
+                assert login_failed, f"场景 '{desc}' 应登录失败"

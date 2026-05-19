@@ -64,11 +64,12 @@ class TestDeanCourseManagement:
     @allure.severity(allure.severity_level.CRITICAL)
     def test_enrol_teacher(self):
         enrol_data = self.course_data['teacher_enrolment']
+        create_data = self.course_data['course_creation']
 
         with allure.step('1. Manage Courses → click first course → click Edit'):
             mgmt_page = CourseManagementPage(self.driver)
             mgmt_page.navigate_to_management()
-            mgmt_page.click_first_course()
+            mgmt_page.click_course_by_name(create_data['fullname'])
             mgmt_page.click_edit_course()
 
         with allure.step('2. Go to Participants → Enrol users'):
@@ -77,9 +78,16 @@ class TestDeanCourseManagement:
             part_page.click_enrol_users()
 
         with allure.step(f'3. Search {enrol_data["teacher_full"]} and enrol as Teacher'):
-            part_page.search_and_select_user(enrol_data['teacher_name'])
-            part_page.assign_role('教师')
-            part_page.confirm()
+            selected = part_page.search_and_select_user(enrol_data['teacher_name'])
+            if selected:
+                part_page.assign_role('教师')
+                part_page.confirm()
+            else:
+                allure.attach(
+                    f"{enrol_data['teacher_full']} may already be enrolled",
+                    name="Enrolment skipped",
+                    attachment_type=allure.attachment_type.TEXT
+                )
 
         with allure.step('4. Verify teacher was enrolled'):
             # Wait for the participants table to actually render the teacher
